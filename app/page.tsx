@@ -22,6 +22,7 @@ export default function Calc() {
   });
   const [sellingPrice, setSellingPrice] = useState("");
   const [additionalCost, setAdditionalCost] = useState("");
+  const [isAddMaterialOpen, setIsAddMaterialOpen] = useState(false); // Toggle state for the material form
 
   const handleAddProduct = () => {
     setProducts([...products, { ...newProduct }]);
@@ -84,7 +85,7 @@ export default function Calc() {
 
     // Loop through products and add each one to the PDF
     yOffset += 10;
-    products.forEach((product, index) => {
+    products.forEach((product, i) => {
       doc.text(`Name: ${product.name}`, 120, yOffset);
       doc.text(`Unit Type: ${product.unitType}`, 120, yOffset + 10);
       doc.text(
@@ -112,76 +113,85 @@ export default function Calc() {
       <div className={styles.leftPanel}>
         <h1>Material Cost and Profit Calculator</h1>
         <div>
-          <h2>Add a Material</h2>
-          <label>
-            Material Name:
-            <input
-              type="text"
-              value={newProduct.name}
-              onChange={(e) =>
-                setNewProduct({ ...newProduct, name: e.target.value })
-              }
-            />
-          </label>
-          <br />
-          <label>
-            Unit Type:
-            <select
-              value={newProduct.unitType}
-              onChange={(e) =>
-                setNewProduct({ ...newProduct, unitType: e.target.value })
-              }
-            >
-              <option value="">Select Unit</option>
-              <option value="kg">Kilogram (kg)</option>
-              <option value="liter">Liter (L)</option>
-              <option value="box">Box (pieces)</option>
-            </select>
-          </label>
-          <br />
-          <label>
-            Price per {newProduct.unitType || "unit"} (₹):
-            <input
-              type="number"
-              value={newProduct.unitPrice}
-              onChange={(e) =>
-                setNewProduct({ ...newProduct, unitPrice: e.target.value })
-              }
-            />
-          </label>
-          <br />
-          {newProduct.unitType === "box" && (
-            <>
+          <h2
+            onClick={() => setIsAddMaterialOpen(!isAddMaterialOpen)}
+            className={styles.toggleButton}
+          >
+            {isAddMaterialOpen ? "Hide" : "Add a Material"}
+          </h2>
+          {isAddMaterialOpen && (
+            <div className={styles.addMaterialForm}>
               <label>
-                Total Pieces in Box:
+                Material Name:
                 <input
-                  type="number"
-                  value={newProduct.totalPieces}
+                  type="text"
+                  value={newProduct.name}
                   onChange={(e) =>
-                    setNewProduct({
-                      ...newProduct,
-                      totalPieces: e.target.value,
-                    })
+                    setNewProduct({ ...newProduct, name: e.target.value })
                   }
                 />
               </label>
               <br />
-            </>
+              <label>
+                Unit Type:
+                <select
+                  value={newProduct.unitType}
+                  onChange={(e) =>
+                    setNewProduct({ ...newProduct, unitType: e.target.value })
+                  }
+                >
+                  <option value="">Select Unit</option>
+                  <option value="kg">Kilogram (kg)</option>
+                  <option value="liter">Liter (L)</option>
+                  <option value="box">Box (pieces)</option>
+                </select>
+              </label>
+              <br />
+              <label>
+                Price per {newProduct.unitType || "unit"} (₹):
+                <input
+                  type="number"
+                  value={newProduct.unitPrice}
+                  onChange={(e) =>
+                    setNewProduct({ ...newProduct, unitPrice: e.target.value })
+                  }
+                />
+              </label>
+              <br />
+              {newProduct.unitType === "box" && (
+                <>
+                  <label>
+                    Total Pieces in Box:
+                    <input
+                      type="number"
+                      value={newProduct.totalPieces}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          totalPieces: e.target.value,
+                        })
+                      }
+                    />
+                  </label>
+                  <br />
+                </>
+              )}
+              <label>
+                Quantity Per Cup (g/ml/piece):
+                <input
+                  type="number"
+                  value={newProduct.quantityPerCup}
+                  onChange={(e) =>
+                    setNewProduct({ ...newProduct, quantityPerCup: e.target.value })
+                  }
+                />
+              </label>
+              <br />
+              <button type="button" onClick={handleAddProduct}>
+                Add Material
+              </button>
+            </div>
           )}
-          <label>
-            Quantity Per Cup (g/ml/piece):
-            <input
-              type="number"
-              value={newProduct.quantityPerCup}
-              onChange={(e) =>
-                setNewProduct({ ...newProduct, quantityPerCup: e.target.value })
-              }
-            />
-          </label>
-          <br />
-          <button type="button" onClick={handleAddProduct}>
-            Add Material
-          </button>
         </div>
         <br />
         <div>
@@ -223,8 +233,8 @@ export default function Calc() {
       <div className={styles.rightPanel}>
         <h2>Added Materials</h2>
         <ul className={styles.productList}>
-          {products.map((product, index) => (
-            <li key={index} className={styles.productListItem}>
+          {products.map((product, i) => (
+            <li key={i} className={styles.productListItem}>
               <div className={styles.productListItemText}>
                 <strong>Name:</strong> {product.name} <br />
                 <strong>Unit Type:</strong> {product.unitType} <br />
@@ -238,7 +248,7 @@ export default function Calc() {
                 <strong>Quantity per Cup:</strong> {product.quantityPerCup}{" "}
                 <br />
               </div>
-              <button onClick={() => handleRemoveProduct(index)}>Remove</button>
+              <button onClick={() => handleRemoveProduct(i)}>Remove</button>
             </li>
           ))}
         </ul>
