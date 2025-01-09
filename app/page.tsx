@@ -3,7 +3,7 @@
 "use client";
 import { useState } from "react";
 import { jsPDF } from "jspdf";
-import styles from "./page.module.css"; // Import styles as a module
+import styles from "./page.module.css";
 
 interface Product {
   name: string;
@@ -63,9 +63,13 @@ export default function Calc() {
   };
 
   const calculateProfitPercentage = () => {
-    const costPerCup = calculateCostPerCup();
     const profit = calculateProfitPerCup();
-    return (profit / costPerCup) * 100;
+    return (profit / parseFloat(sellingPrice)) * 100;
+  };
+
+  const calculateCostPercentage = () => {
+    const costPerCup = calculateCostPerCup();
+    return (costPerCup / parseFloat(sellingPrice)) * 100;
   };
 
   const generatePDF = () => {
@@ -75,16 +79,16 @@ export default function Calc() {
     const costPerCup = calculateCostPerCup().toFixed(2);
     const profitPerCup = calculateProfitPerCup().toFixed(2);
     const profitPercentage = calculateProfitPercentage().toFixed(2);
+    const costPercentage = calculateCostPercentage().toFixed(2);
 
     doc.text("Cost per Cup: ₹" + costPerCup, 10, 10);
-    doc.text("Profit per Cup: ₹" + profitPerCup, 10, 20);
-    doc.text("Profit Percentage: " + profitPercentage + "%", 10, 30);
+    doc.text("Cost Percentage: " + costPercentage + "%", 10, 20);
+    doc.text("Profit per Cup: ₹" + profitPerCup, 10, 30);
+    doc.text("Profit Percentage: " + profitPercentage + "%", 10, 40);
 
-    // Table for Products (Right side)
-    let yOffset = 40;
-    doc.text("Material List", 120, yOffset); // Title for the right side
+    let yOffset = 50;
+    doc.text("Material List", 120, yOffset);
 
-    // Loop through products and add each one to the PDF
     yOffset += 10;
     products.forEach((product, index) => {
       doc.text(`Name: ${product.name}`, 120, yOffset);
@@ -102,10 +106,9 @@ export default function Calc() {
         120,
         yOffset + 40
       );
-      yOffset += 50; // Adjust spacing between products
+      yOffset += 50;
     });
 
-    // Save the PDF
     doc.save("material_and_profit_report.pdf");
   };
 
@@ -211,6 +214,9 @@ export default function Calc() {
             <h2>Results</h2>
             <p className={styles.resultText}>
               Cost Per Cup: ₹{calculateCostPerCup().toFixed(2)}
+            </p>
+            <p className={styles.resultText}>
+              Cost Percentage: {calculateCostPercentage().toFixed(2)}%
             </p>
             <p className={styles.resultText}>
               Profit Per Cup: ₹{calculateProfitPerCup().toFixed(2)}
