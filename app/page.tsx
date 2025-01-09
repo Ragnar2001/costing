@@ -66,7 +66,7 @@ export default function Calc() {
   };
 
   const calculateProfitPercentage = () => {
-    const costPerCup = calculateCostPerCup();
+    // const costPerCup = calculateCostPerCup();
     const profit = calculateProfitPerCup();
     return (profit / parseFloat(sellingPrice)) * 100;
   };
