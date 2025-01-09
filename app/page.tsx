@@ -114,7 +114,13 @@ export default function Calc() {
     autoTable(doc, {
       startY: secondTableStartY, // Set the starting Y position for the second table
       head: [
-        ["Name", "Unit Type", "Unit Price", "Total Pieces", "Quantity per Cup"],
+        [
+          "Name",
+          "Unit Type (SI Units)",
+          "Unit Price (Per one SI Unit)",
+          "Total Pieces",
+          "Quantity per Cup (CGS Units)",
+        ],
       ],
       body: productData,
     });
