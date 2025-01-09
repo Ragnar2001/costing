@@ -66,7 +66,6 @@ export default function Calc() {
   };
 
   const calculateProfitPercentage = () => {
-    // const costPerCup = calculateCostPerCup();
     const profit = calculateProfitPerCup();
     return (profit / parseFloat(sellingPrice)) * 100;
   };
@@ -257,19 +256,25 @@ export default function Calc() {
 
       {/* Modal for Product Name */}
       {showModal && (
-        <div className={styles.modal}>
+        <div className={`${styles.modal} ${showModal ? styles.open : ""}`}>
           <div className={styles.modalContent}>
             <h3>Enter Product Name for PDF</h3>
             <input
               type="text"
               value={productNameForPDF || ""}
               onChange={(e) => setProductNameForPDF(e.target.value)}
+              placeholder="Enter product name"
             />
             <button
               onClick={() => {
-                setShowModal(false);
-                generatePDF(); // Generate PDF after closing the modal
+                if (productNameForPDF) {
+                  setShowModal(false);
+                  generatePDF(); // Generate PDF after closing the modal
+                } else {
+                  alert("Please enter a product name."); // Show alert if product name is not entered
+                }
               }}
+              disabled={!productNameForPDF} // Disable button if no product name is entered
             >
               Generate PDF
             </button>
