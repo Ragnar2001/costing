@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 "use client";
 import { useState } from "react";
 import { jsPDF } from "jspdf";
-import styles from "./page.module.css";
+import autoTable from "jspdf-autotable";
+import styles from "./page.module.css"; // Import styles as a module
 
 interface Product {
   name: string;
@@ -24,6 +23,10 @@ export default function Calc() {
   });
   const [sellingPrice, setSellingPrice] = useState("");
   const [additionalCost, setAdditionalCost] = useState("");
+  const [productNameForPDF, setProductNameForPDF] = useState<string | null>(
+    null
+  );
+  const [showModal, setShowModal] = useState(false); // Modal state
 
   const handleAddProduct = () => {
     setProducts([...products, { ...newProduct }]);
@@ -63,6 +66,7 @@ export default function Calc() {
   };
 
   const calculateProfitPercentage = () => {
+    const costPerCup = calculateCostPerCup();
     const profit = calculateProfitPerCup();
     return (profit / parseFloat(sellingPrice)) * 100;
   };
@@ -81,34 +85,50 @@ export default function Calc() {
     const profitPercentage = calculateProfitPercentage().toFixed(2);
     const costPercentage = calculateCostPercentage().toFixed(2);
 
-    doc.text("Cost per Cup: ₹" + costPerCup, 10, 10);
-    doc.text("Cost Percentage: " + costPercentage + "%", 10, 20);
-    doc.text("Profit per Cup: ₹" + profitPerCup, 10, 30);
-    doc.text("Profit Percentage: " + profitPercentage + "%", 10, 40);
+    doc.text("Material Cost and Profit Report", 14, 10);
 
-    let yOffset = 50;
-    doc.text("Material List", 120, yOffset);
-
-    yOffset += 10;
-    products.forEach((product, index) => {
-      doc.text(`Name: ${product.name}`, 120, yOffset);
-      doc.text(`Unit Type: ${product.unitType}`, 120, yOffset + 10);
-      doc.text(
-        `Price per ${product.unitType}: ₹${product.unitPrice}`,
-        120,
-        yOffset + 20
-      );
-      if (product.unitType === "box") {
-        doc.text(`Total Pieces: ${product.totalPieces}`, 120, yOffset + 30);
-      }
-      doc.text(
-        `Quantity per Cup: ${product.quantityPerCup}`,
-        120,
-        yOffset + 40
-      );
-      yOffset += 50;
+    // First Table: Material and Profit Report
+    autoTable(doc, {
+      startY: 20,
+      head: [["Metric", "Value"]],
+      body: [
+        ["Cost per Cup", `${costPerCup}`],
+        ["Cost Percentage", `${costPercentage}%`],
+        ["Profit per Cup", `${profitPerCup}`],
+        ["Profit Percentage", `${profitPercentage}%`],
+      ],
     });
 
+    // Manually set Y-position for the second table (adjust as needed)
+    const secondTableStartY = 100; // Adjust this value to set the distance between the tables
+
+    // Second Table: Products Details
+    const productData = products.map((product) => [
+      product.name || "",
+      product.unitType || "",
+      `${product.unitPrice}` || "",
+      product.unitType === "box" ? product.totalPieces || "" : "-",
+      product.quantityPerCup || "",
+    ]);
+
+    autoTable(doc, {
+      startY: secondTableStartY, // Set the starting Y position for the second table
+      head: [
+        ["Name", "Unit Type", "Unit Price", "Total Pieces", "Quantity per Cup"],
+      ],
+      body: productData,
+    });
+
+    // If productNameForPDF is set, center it on the PDF
+    if (productNameForPDF) {
+      const pageWidth = doc.internal.pageSize.width;
+      const nameWidth =
+        doc.getStringUnitWidth(productNameForPDF) * doc.getFontSize();
+      const xPosition = (pageWidth - nameWidth) / 2;
+      doc.text(productNameForPDF, xPosition, 160); // Adjust Y-position as needed
+    }
+
+    // Save the PDF
     doc.save("material_and_profit_report.pdf");
   };
 
@@ -224,10 +244,34 @@ export default function Calc() {
             <p className={styles.resultText}>
               Profit Percentage: {calculateProfitPercentage().toFixed(2)}%
             </p>
-            <button onClick={generatePDF}>Generate PDF</button>
+            <button onClick={() => setShowModal(true)}>Generate PDF</button>
           </>
         )}
       </div>
+
+      {/* Modal for Product Name */}
+      {showModal && (
+        <div className={styles.modal}>
+          <div className={styles.modalContent}>
+            <h3>Enter Product Name for PDF</h3>
+            <input
+              type="text"
+              value={productNameForPDF || ""}
+              onChange={(e) => setProductNameForPDF(e.target.value)}
+            />
+            <button
+              onClick={() => {
+                setShowModal(false);
+                generatePDF(); // Generate PDF after closing the modal
+              }}
+            >
+              Generate PDF
+            </button>
+            <button onClick={() => setShowModal(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
+
       <div className={styles.rightPanel}>
         <h2>Added Materials</h2>
         <ul className={styles.productList}>
